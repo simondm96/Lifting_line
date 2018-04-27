@@ -7,6 +7,7 @@ Created on Wed Apr 25 14:41:32 2018
 """
 
 import numpy as np
+import csv
 
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
@@ -31,4 +32,33 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
         vector_2 = np.inner(r0, r1/r1_norm-r2/r2_norm)
         v_ind = vector_1*vector_2
     return v_ind
+    
+
+
+#reads airfoil polar data
+polar = open('polar_DU95W180.csv', 'rb')
+preader = csv.reader(polar, delimiter = ',')
+alphalist = []
+cllist = []
+count = 0;
+for row in preader:
+    if count<2:
+        #print 'header'
+        count = count +1
+    else:
+        alphalist.append(float(row[0]))
+        cllist.append(float(row[1]))
+
+"""
+instructions: call polarreader with the required alpha and the alphalist & cllist
+will return interpolated cl value
+"""
+def polarreader(alpha, alphalist, cllist):
+    cl = np.interp(alpha, alphalist, cllist)
+    return cl
+    
+    
+
+    
+
     
