@@ -57,6 +57,13 @@ def polarreader(alpha, alphalist, cllist):
     cl = np.interp(alpha, alphalist, cllist)
     return cl
     
+"""
+Very basic circulation calculator with lots of inputs and 1 output
+"""
+def circcalc(alpha, V, rho, c):
+    circ = 0.5*c*V*polarreader(alpha)
+    return circ
+    
     
 
     
