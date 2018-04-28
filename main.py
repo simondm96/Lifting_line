@@ -194,6 +194,20 @@ for icp in range(N-1):
         MatrixU[icp][jring] = ind_vel[0]
         MatrixV[icp][jring] = ind_vel[1]
         MatrixW[icp][jring] = ind_vel[2]
+        
+        
+"""
+Calculate circulations for U, V, W unit circulation matrices
+"""
+gamma_U = np.zeros(N)
+gamma_V = np.zeros(N)
+gamma_W = np.zeros(N)
+
+#for z in range(N):
+#    alpha = 
+#    gamma_U[z] = circcalc(alpha, Vp, rho, c)
+#    gamma_V[z] = 
+#    gamma_Z[z] = 
 
 """
 3D plot test
@@ -205,7 +219,7 @@ ax = plt.axes(projection='3d')
 ax.set_zlim(-50, 50)
 ax.set_xlim(-50, 50)
 ax.set_ylim(0, 140*fact)
-ax.view_init(20, -20)
+ax.view_init(0, -20)
 for i in range(int(t_steps*fact)):
     x1 = x
     y1 = y
