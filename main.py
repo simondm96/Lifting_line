@@ -26,20 +26,12 @@ rho = 1.225
 a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
-t=np.linspace(0., 20., 100)
+t_steps = 100
+t=np.linspace(0., 20., t_steps)
+om_x = np.cos(omega*t)
+om_y = np.sin(omega*t)
 
-def Disc_Geo_fixed(a_w, U_inf, R, omega, t):
-
-    x_w=t*U_inf*(1-a_w)
-    y_w=R*np.sin(omega*t)
-    z_w=R*np.cos(omega*t)
-    return x_w, y_w, z_w
-
-
-"""
-Set accuracy
-"""
-N = 100
+single_wake = np.zeros((t_steps, N, 3))
 
 
 """
@@ -182,8 +174,10 @@ elements = middle_vals(ends)
 controlpoints = np.zeros((N-1, 3))
 controlpoints[:,0] = elements
 
-#single_vortex = Disc_Geo_fixed(a_w, u_inf, ends, omega, t)
-
+#Constructing the matrix
+single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N, t_steps)))
+single_wake[:,:,0] = om_x.reshape((-1,1)) @ ends.reshape((1,-1))
+single_wake[:,:,1] = om_y.reshape((-1,1)) @ ends.reshape((1,-1))
      
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
