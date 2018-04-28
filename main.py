@@ -90,12 +90,15 @@ def circcalc(alpha, V, rho, c):
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
-#N = 100
-#controlpoints = np.zeros(N)  
-#  
-#MatrixU = np.zeros(N, N)
-#MatrixV = np.zeros(N, N)
-#MatrixW = np.zeros(N, N)
+N = 100
+controlpoints = np.zeros(N)  
+  
+MatrixU = np.zeros(N, N)
+MatrixV = np.zeros(N, N)
+MatrixW = np.zeros(N, N)
 #for icp in range(len(controlpoints)):
 #    for jring in range(len(controlpoints)):
-#    MatrixU[][
+#        MatrixU[icp][jring] = induced_velocity(
+#        MatrixV[icp][jring] = induced_velocity(
+#        MatrixW[icp][jring] = induced_velocity(
+        
