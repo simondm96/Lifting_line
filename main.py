@@ -183,11 +183,13 @@ single_wake[:,:,1] = om_y.reshape((-1,1)) @ ends.reshape((1,-1))
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
 
-#MatrixU = np.zeros((N, N))
-#MatrixV = np.zeros((N, N))
-#MatrixW = np.zeros((N, N))
-#for icp in range(N):
-#    for jring in range(N):
-#        MatrixU[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
-#        MatrixV[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
-#        MatrixW[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+MatrixU = np.zeros((N-1, t_steps-1))
+MatrixV = np.zeros((N-1, t_steps-1))
+MatrixW = np.zeros((N-1, t_steps-1))
+for icp in range(N-1):
+    for jring in range(t_steps-1):
+        ring = [single_wake[jring, icp,:], single_wake[jring+1, icp,:], single_wake[jring+1, icp+1,:], single_wake[jring, icp+1,:]]
+        ind_vel = unit_induced_velocity_calc(controlpoints[icp], ring)
+        MatrixU[icp][jring] = ind_vel[0]
+        MatrixV[icp][jring] = ind_vel[1]
+        MatrixW[icp][jring] = ind_vel[2]
