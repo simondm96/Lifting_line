@@ -38,7 +38,6 @@ coordlist = np.zeros((1,3))
 
 for tn in range(3):
     theta = 90+tn*120
-    print theta
     r=0
     for N_el in range(N):
         dr = R/N
@@ -58,7 +57,7 @@ Initialize matrix of ring coordinates
 
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
-    Calclates the induced velocity of a straight vortex element between point_1 and point_2 on point
+    Calculates the induced velocity of a straight vortex element between point_1 and point_2 on point
     """
     point = np.asarray(point)
     point_1 = np.asarray(point_1)
@@ -126,7 +125,6 @@ def circcalc(alpha, V, rho, c):
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
-
   
 MatrixU = np.zeros((N, N))
 MatrixV = np.zeros((N, N))
