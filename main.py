@@ -49,19 +49,14 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
 
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
-preader = csv.reader(polar, delimiter = ',')
+preader = np.genfromtxt(polar, delimiter = ',', skip_header = 2)
 alphalist = []
 cllist = []
 cdlist = []
-count = 0;
-for row in preader:
-    if count<2:
-        #print 'header'
-        count = count +1
-    else:
-        alphalist.append(float(row[0]))
-        cllist.append(float(row[1]))
-        cdlist.append(float(row[2]))
+for n in range(len(preader)):
+    alphalist.append(preader[n][0])
+    cllist.append(preader[n][1])
+    cdlist.append(preader[n][2])
         
 
 """
@@ -77,11 +72,19 @@ def polarreader(alpha, alphalist, cllist, cdlist):
 Very basic circulation calculator with lots of inputs and 1 output
 """
 def circcalc(alpha, V, rho, c):
-    circ = 0.5*c*V*polarreader(alpha)
+    circ = 0.5*c*V*polarreader(alpha, alphalist, cllist, cdlist)[0]
     return circ
-    
-    
-
-    
-
-    
+   
+     
+"""
+Initialize u, v, w matrices with circulation/ring strength set to unity
+"""
+#N = 100
+#controlpoints = np.zeros(N)  
+#  
+#MatrixU = np.zeros(N, N)
+#MatrixV = np.zeros(N, N)
+#MatrixW = np.zeros(N, N)
+#for icp in range(len(controlpoints)):
+#    for jring in range(len(controlpoints)):
+#    MatrixU[][
