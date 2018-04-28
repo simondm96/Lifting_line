@@ -7,6 +7,8 @@ Created on Wed Apr 25 14:41:32 2018
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 """
@@ -32,6 +34,38 @@ def Disc_Geo_fixed(a_w, U_inf, R, omega, t):
     y_w=R*np.sin(omega*t)
     z_w=R*np.cos(omega*t)
     return x_w, y_w, z_w
+
+
+"""
+Set accuracy
+"""
+N = 100
+
+
+"""
+Initialize coordlist matrix of rotor coordinates
+"""
+coordlist = np.zeros((1,3))
+
+
+for tn in range(3):
+    theta = 90+tn*120
+    r=0
+    for N_el in range(N):
+        dr = R/N
+        r = r+dr
+        x = r*np.cos(np.radians(theta))
+        y = r*np.sin(np.radians(theta))
+        z = 0
+        tempmat = [[x,y,z]]
+        coordlist = np.vstack([coordlist, tempmat])
+
+"""
+Initialize matrix of ring coordinates
+"""
+
+
+
 
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
@@ -115,21 +149,24 @@ cllist = preader[1,:]
 cdlist = preader[2,:]
        
 
-"""
-instructions: call polarreader with the required alpha and the alphalist & cllist
-will return interpolated cl value
-"""
+
 def polarreader(alpha, alphalist, cllist, cdlist):
+    """
+    instructions: call polarreader with the required alpha and the alphalist & cllist
+    will return interpolated cl value
+    """
     cl = np.interp(alpha, alphalist, cllist)
     cd = np.interp(alpha, alphalist, cdlist)
     return cl, cd
     
-"""
-Very basic circulation calculator with lots of inputs and 1 output
-"""
+
 def circcalc(alpha, V, rho, c):
+    """
+    Very basic circulation calculator with lots of inputs and 1 output
+    """
     circ = 0.5*c*V*polarreader(alpha, alphalist, cllist, cdlist)[0]
     return circ
+
    
 """
 Initialising the blade
@@ -146,18 +183,19 @@ controlpoints = np.zeros((N-1, 3))
 controlpoints[:,0] = elements
 
 #single_vortex = Disc_Geo_fixed(a_w, u_inf, ends, omega, t)
+
      
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
 
-  
-#MatrixU = np.zeros(N, N)
-#MatrixV = np.zeros(N, N)
-#MatrixW = np.zeros(N, N)
-#for icp in range(len(controlpoints)):
-#    for jring in range(len(controlpoints)):
-#        MatrixU[icp][jring] = induced_velocity(
-#        MatrixV[icp][jring] = induced_velocity(
-#        MatrixW[icp][jring] = induced_velocity(
+#MatrixU = np.zeros((N, N))
+#MatrixV = np.zeros((N, N))
+#MatrixW = np.zeros((N, N))
+#for icp in range(N):
+#    for jring in range(N):
+#        MatrixU[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+#        MatrixV[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+#        MatrixW[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+
         
