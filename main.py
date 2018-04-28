@@ -32,8 +32,18 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
         vector_2 = np.inner(r0, r1/r1_norm-r2/r2_norm)
         v_ind = vector_1*vector_2
     return v_ind
-    
+  
 
+def unit_induced_velocity_calc(point, ring):
+    """
+    Calculates the induced velocity on a control point by a vortex ring
+    """
+    ind_vel = np.array([0,0,0], dtype = 'float64')
+    for i in range(len(ring)):
+        vel = induced_velocity(point, ring[i-1], ring[i], 1)
+        ind_vel += vel
+    return ind_vel
+    
 
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
