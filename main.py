@@ -7,13 +7,14 @@ Created on Wed Apr 25 14:41:32 2018
 """
 
 import numpy as np
-import csv
 import matplotlib.pyplot as plt
+
 
 
 """
 Parameters from BEM assignment
 """
+N = 20
 u_inf = 10.
 N_blades = 3
 hubrR = 0.2
@@ -22,6 +23,17 @@ pitch = 2*np.pi/180
 a = 0.3 #starting value
 aprime = 0.0 #starting value
 rho = 1.225
+a_w = 0.3
+TSR = 6
+omega = TSR * u_inf /R
+t=np.linspace(0., 20., 100)
+
+def Disc_Geo_fixed(a_w, U_inf, R, omega, t):
+
+    x_w=t*U_inf*(1-a_w)
+    y_w=R*np.sin(omega*t)
+    z_w=R*np.cos(omega*t)
+    return x_w, y_w, z_w
 
 
 """
@@ -79,7 +91,45 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
         v_ind = vector_1*vector_2
     return v_ind
   
+def middle_vals(data):
+    return np.diff(data)/2+np.delete(data, -1)
 
+
+def twist(section):
+    """
+    Generates a twist distrubution
+    
+    Input:
+        section     = ndarray, the section(s) for which the twist should be
+                      calculated, normalised to the radius of the rotor
+                      
+    Output:
+        twist       = ndarray, the twist for the section(s). If sections is a
+                      float, returns a float
+    """
+    return 14*(1-section)*np.pi/180.
+
+
+def chord(section):
+    """
+    Generates a chord distribution
+    
+    Input:
+        section     = ndarray, the section(s) for which the chord should be
+                      calculated, normalised to the radius of the rotor
+                      
+    Output:
+        twist       = ndarray, the chord for the section(s). If section is a
+                      float, returns a float
+    """
+    return (3*(1-section)+1)
+
+
+def map_values(data, x_start1, x_end1, x_start2, x_end2):
+    """
+    Maps data with boundaries x_start1 and x_end1 to x_start2 and x_start2
+    """
+    return x_start2 + (data-x_start1)*(x_end2-x_start2)/(x_end1-x_start1)
 
 def unit_induced_velocity_calc(point, ring):
     """
@@ -94,14 +144,10 @@ def unit_induced_velocity_calc(point, ring):
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
 preader = np.genfromtxt(polar, delimiter = ',', skip_header = 2)
-alphalist = []
-cllist = []
-cdlist = []
-for n in range(len(preader)):
-    alphalist.append(preader[n][0])
-    cllist.append(preader[n][1])
-    cdlist.append(preader[n][2])
-        
+alphalist = preader[0,:]
+cllist = preader[1,:]
+cdlist = preader[2,:]
+       
 
 
 def polarreader(alpha, alphalist, cllist, cdlist):
@@ -120,18 +166,34 @@ def circcalc(alpha, V, rho, c):
     """
     circ = 0.5*c*V*polarreader(alpha, alphalist, cllist, cdlist)[0]
     return circ
-  
+
+   
+"""
+Initialising the blade
+"""
+
+#Cosine mapping
+mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N)))
+
+ends = map_values(mapping, 0,1, 0.2*R, R)
+elements = middle_vals(ends)
+
+#calculating the blade coordinates
+controlpoints = np.zeros((N-1, 3))
+controlpoints[:,0] = elements
+
+#single_vortex = Disc_Geo_fixed(a_w, u_inf, ends, omega, t)
+
      
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
-  
-MatrixU = np.zeros((N, N))
-MatrixV = np.zeros((N, N))
-MatrixW = np.zeros((N, N))
-for icp in range(len(N)):
-    for jring in range(len(N)):
-        MatrixU[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
-        MatrixV[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
-        MatrixW[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
-        
+
+#MatrixU = np.zeros((N, N))
+#MatrixV = np.zeros((N, N))
+#MatrixW = np.zeros((N, N))
+#for icp in range(N):
+#    for jring in range(N):
+#        MatrixU[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+#        MatrixV[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+#        MatrixW[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
