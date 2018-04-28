@@ -26,7 +26,7 @@ rho = 1.225
 a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
-t_steps = 100
+t_steps = 150
 t=np.linspace(0., 20., t_steps)
 om_x = np.cos(omega*t)
 om_y = np.sin(omega*t)
@@ -198,21 +198,23 @@ for icp in range(N-1):
 """
 3D plot test
 """
+fact = 1.0
+fig = plt.figure(num=None, figsize=(50, 50), dpi=30, facecolor='w', edgecolor='k')
 
-#fig = plt.figure()
 ax = plt.axes(projection='3d')
-
-
-
-x = single_wake[:,:,0]
-y = single_wake[:,:,1]
-z = single_wake[:,:,2]
-
-x2 = x*(1-np.sin(np.radians(120)))
-y2 = y*(1-np.cos(np.radians(120)))
+ax.set_zlim(-50, 50)
+ax.set_xlim(-50, 50)
+ax.set_ylim(0, 140*fact)
+ax.view_init(20, -20)
+for i in range(int(t_steps*fact)):
+    x1 = x
+    y1 = y
+    z1 = z
+    x = single_wake[i:i+2,:,0]
+    y = single_wake[i:i+2,:,1]
+    z = single_wake[i:i+2,:,2]
+    ax.plot_wireframe(x, z, y)
+    plt.pause(.00001)
  
-    
-ax.plot_wireframe(x, z, y)
-ax.plot_wireframe(x2, z, y2)
-ax.axis('equal')
+
 plt.show()
