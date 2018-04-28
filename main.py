@@ -9,6 +9,19 @@ Created on Wed Apr 25 14:41:32 2018
 import numpy as np
 import csv
 
+
+"""
+Parameters from BEM assignment
+"""
+u_inf = 10.
+N_blades = 3
+hubrR = 0.2
+R = 50.
+pitch = 2*np.pi/180
+a = 0.3 #starting value
+aprime = 0.0 #starting value
+rho = 1.225
+
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
     Calclates the induced velocity of a straight vortex element between point_1 and point_2 on point
@@ -34,6 +47,7 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     return v_ind
   
 
+
 def unit_induced_velocity_calc(point, ring):
     """
     Calculates the induced velocity on a control point by a vortex ring
@@ -43,39 +57,45 @@ def unit_induced_velocity_calc(point, ring):
         vel = induced_velocity(point, ring[i-1], ring[i], 1)
         ind_vel += vel
     return ind_vel
-    
 
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
-preader = csv.reader(polar, delimiter = ',')
+preader = np.genfromtxt(polar, delimiter = ',', skip_header = 2)
 alphalist = []
 cllist = []
-count = 0;
-for row in preader:
-    if count<2:
-        #print 'header'
-        count = count +1
-    else:
-        alphalist.append(float(row[0]))
-        cllist.append(float(row[1]))
+cdlist = []
+for n in range(len(preader)):
+    alphalist.append(preader[n][0])
+    cllist.append(preader[n][1])
+    cdlist.append(preader[n][2])
+        
 
 """
 instructions: call polarreader with the required alpha and the alphalist & cllist
 will return interpolated cl value
 """
-def polarreader(alpha, alphalist, cllist):
+def polarreader(alpha, alphalist, cllist, cdlist):
     cl = np.interp(alpha, alphalist, cllist)
-    return cl
+    cd = np.interp(alpha, alphalist, cdlist)
+    return cl, cd
     
 """
 Very basic circulation calculator with lots of inputs and 1 output
 """
 def circcalc(alpha, V, rho, c):
-    circ = 0.5*c*V*polarreader(alpha)
+    circ = 0.5*c*V*polarreader(alpha, alphalist, cllist, cdlist)[0]
     return circ
-    
-    
-
-    
-
-    
+   
+     
+"""
+Initialize u, v, w matrices with circulation/ring strength set to unity
+"""
+#N = 100
+#controlpoints = np.zeros(N)  
+#  
+#MatrixU = np.zeros(N, N)
+#MatrixV = np.zeros(N, N)
+#MatrixW = np.zeros(N, N)
+#for icp in range(len(controlpoints)):
+#    for jring in range(len(controlpoints)):
+#    MatrixU[][
