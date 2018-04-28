@@ -9,6 +9,19 @@ Created on Wed Apr 25 14:41:32 2018
 import numpy as np
 import csv
 
+
+"""
+Parameters from BEM assignment
+"""
+u_inf = 10.
+N_blades = 3
+hubrR = 0.2
+R = 50.
+pitch = 2*np.pi/180
+a = 0.3 #starting value
+aprime = 0.0 #starting value
+rho = 1.225
+
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
     Calclates the induced velocity of a straight vortex element between point_1 and point_2 on point
@@ -34,12 +47,12 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     return v_ind
     
 
-
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
 preader = csv.reader(polar, delimiter = ',')
 alphalist = []
 cllist = []
+cdlist = []
 count = 0;
 for row in preader:
     if count<2:
@@ -48,14 +61,17 @@ for row in preader:
     else:
         alphalist.append(float(row[0]))
         cllist.append(float(row[1]))
+        cdlist.append(float(row[2]))
+        
 
 """
 instructions: call polarreader with the required alpha and the alphalist & cllist
 will return interpolated cl value
 """
-def polarreader(alpha, alphalist, cllist):
+def polarreader(alpha, alphalist, cllist, cdlist):
     cl = np.interp(alpha, alphalist, cllist)
-    return cl
+    cd = np.interp(alpha, alphalist, cdlist)
+    return cl, cd
     
 """
 Very basic circulation calculator with lots of inputs and 1 output
