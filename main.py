@@ -23,6 +23,10 @@ a = 0.3 #starting value
 aprime = 0.0 #starting value
 rho = 1.225
 
+
+"""
+Set accuracy
+"""
 N = 100
 
 
@@ -45,17 +49,11 @@ for tn in range(3):
         tempmat = [[x,y,z]]
         coordlist = np.vstack([coordlist, tempmat])
 
-#xlist = []
-#ylist = []
-#for k in range(N*3):
-#    x = coordlist[k][0]
-#    y = coordlist[k][1]
-#    xlist.append(x)
-#    ylist.append(y)
-#    
-#plt.plot(ylist, xlist, 'o')
-#plt.axis('equal')
-#plt.show()
+"""
+Initialize matrix of ring coordinates
+"""
+
+
 
 
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
@@ -106,19 +104,21 @@ for n in range(len(preader)):
     cdlist.append(preader[n][2])
         
 
-"""
-instructions: call polarreader with the required alpha and the alphalist & cllist
-will return interpolated cl value
-"""
+
 def polarreader(alpha, alphalist, cllist, cdlist):
+    """
+    instructions: call polarreader with the required alpha and the alphalist & cllist
+    will return interpolated cl value
+    """
     cl = np.interp(alpha, alphalist, cllist)
     cd = np.interp(alpha, alphalist, cdlist)
     return cl, cd
     
-"""
-Very basic circulation calculator with lots of inputs and 1 output
-"""
+
 def circcalc(alpha, V, rho, c):
+    """
+    Very basic circulation calculator with lots of inputs and 1 output
+    """
     circ = 0.5*c*V*polarreader(alpha, alphalist, cllist, cdlist)[0]
     return circ
   
@@ -126,15 +126,14 @@ def circcalc(alpha, V, rho, c):
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
-N = 100
-controlpoints = np.zeros(N)  
+
   
-#MatrixU = np.zeros((N, N))
-#MatrixV = np.zeros((N, N))
-#MatrixW = np.zeros((N, N))
-#for icp in range(len(controlpoints)):
-#    for jring in range(len(controlpoints)):
-#        MatrixU[icp][jring] = unit_induced_velocity(controlpoint[i], controlpoints)
-#        MatrixV[icp][jring] = unit_induced_velocity(controlpoint[i], controlpoints)
-#        MatrixW[icp][jring] = unit_induced_velocity(controlpoint[i], controlpoints)
+MatrixU = np.zeros((N, N))
+MatrixV = np.zeros((N, N))
+MatrixW = np.zeros((N, N))
+for icp in range(len(N)):
+    for jring in range(len(N)):
+        MatrixU[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+        MatrixV[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+        MatrixW[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
         
