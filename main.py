@@ -8,7 +8,7 @@ Created on Wed Apr 25 14:41:32 2018
 
 import numpy as np
 import matplotlib.pyplot as plt
-
+from mpl_toolkits import mplot3d
 
 
 """
@@ -175,9 +175,9 @@ controlpoints = np.zeros((N-1, 3))
 controlpoints[:,0] = elements
 
 #Constructing the matrix
-single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N, t_steps)))
-single_wake[:,:,0] = om_x.reshape((-1,1)) @ ends.reshape((1,-1))
-single_wake[:,:,1] = om_y.reshape((-1,1)) @ ends.reshape((1,-1))
+single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N, t_steps))) #z
+single_wake[:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
+single_wake[:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y
      
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
@@ -191,3 +191,26 @@ Initialize u, v, w matrices with circulation/ring strength set to unity
 #        MatrixU[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
 #        MatrixV[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
 #        MatrixW[icp][jring] = unit_induced_velocity_calc(coordlist[icp], controlpoints)
+
+
+"""
+3D plot test
+"""
+
+#fig = plt.figure()
+ax = plt.axes(projection='3d')
+
+
+
+x = single_wake[:,:,0]
+y = single_wake[:,:,1]
+z = single_wake[:,:,2]
+
+x2 = x*(1-np.sin(np.radians(120)))
+y2 = y*(1-np.cos(np.radians(120)))
+ 
+    
+ax.plot_wireframe(x, z, y)
+ax.plot_wireframe(x2, z, y2)
+ax.axis('equal')
+plt.show()
