@@ -31,7 +31,7 @@ t=np.linspace(0., 20., t_steps)
 om_x = np.cos(omega*t)
 om_y = np.sin(omega*t)
 
-single_wake = np.zeros((t_steps, N, 3))
+single_wake = np.zeros((t_steps, N+1, 3))
 
 
 """
@@ -165,19 +165,19 @@ Initialising the blade
 """
 
 #Cosine mapping
-mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N)))
+mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N+1)))
 
 
 ends = map_values(mapping, 0,1, 0.2*R, R)
 elements = middle_vals(ends)
-mu = map_values(elements, 0.2*R, R, 0.2, R)
+mu = map_values(elements, 0.2*R, R, 0.2, 1)
 
 #calculating the blade coordinates
-controlpoints = np.zeros((N-1, 3))
+controlpoints = np.zeros((N, 3))
 controlpoints[:,0] = elements
 
-#Constructing the matrix
-single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N, t_steps))) #z
+#Constructing the wake matrix for a single blade
+single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps))) #z
 single_wake[:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
 single_wake[:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y
      
@@ -186,12 +186,12 @@ Initialize u, v, w matrices with circulation/ring strength set to unity
 """
 
 
-MatrixU = np.zeros((N-1, N-1))
-MatrixV = np.zeros((N-1, N-1))
-MatrixW = np.zeros((N-1, N-1))
-for icp in range(N-1):
-    for jring in range(N-1):
-        ring = [single_wake[jring, icp,:], single_wake[jring+1, icp,:], single_wake[jring+1, icp+1,:], single_wake[jring, icp+1,:]]
+MatrixU = np.zeros((N, N))
+MatrixV = np.zeros((N, N))
+MatrixW = np.zeros((N, N))
+for icp in range(N):
+    for jring in range(N):
+        ring = np.concatenate((single_wake[:, jring,:], single_wake[::-1, jring+1,:]))
         ind_vel = unit_induced_velocity_calc(controlpoints[icp], ring)
         MatrixU[icp][jring] = ind_vel[0]
         MatrixV[icp][jring] = ind_vel[1]
