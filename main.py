@@ -10,6 +10,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 
+import time
+start_time = time.time()
+
 
 """
 Parameters from BEM assignment
@@ -240,3 +243,4 @@ for i in range(int(t_steps*fact)):
 
 plt.show()
 """
+print("--- %s seconds ---" % (time.time() - start_time))
