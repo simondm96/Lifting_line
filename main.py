@@ -31,10 +31,9 @@ TSR = 6
 omega = TSR * u_inf /R
 t_steps = 150
 t=np.linspace(0., 20., t_steps)
-om_x = np.cos(omega*t)
-om_y = np.sin(omega*t)
 
-single_wake = np.zeros((t_steps, N+1, 3))
+
+single_wake = np.zeros((t_steps, (N+1), 3))
 
 
 """
@@ -174,6 +173,10 @@ mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N+1)))
 ends = map_values(mapping, 0,1, 0.2*R, R)
 elements = middle_vals(ends)
 mu = map_values(elements, 0.2*R, R, 0.2, 1)
+
+
+om_x = np.cos(omega*t)
+om_y = np.sin(omega*t)
 
 #calculating the blade coordinates
 controlpoints = np.zeros((N, 3))
