@@ -170,7 +170,7 @@ mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N)))
 
 ends = map_values(mapping, 0,1, 0.2*R, R)
 elements = middle_vals(ends)
-mu = map_values(elements, 0.2*R, R, 0.2, R)
+mu = map_values(elements, 0.2*R, R, 0.2, 1)
 
 #calculating the blade coordinates
 controlpoints = np.zeros((N-1, 3))
@@ -205,11 +205,15 @@ gamma_U = np.zeros(N)
 gamma_V = np.zeros(N)
 gamma_W = np.zeros(N)
 
-#for z in range(N):
-#    alpha = 
+#pitch = np.radians(2)
+#for z in range(N-1):
+#    t = twist(mu[z])
+#    alpha = t+pitch
+#    c = chord(mu[z])
 #    gamma_U[z] = circcalc(alpha, Vp, rho, c)
-#    gamma_V[z] = 
-#    gamma_Z[z] = 
+#    gamma_V[z] = circcalc(alpha, Vp, rho, c)
+#    gamma_W[z] = circcalc(alpha, Vp, rho, c)
+
 
 """
 3D plot test
