@@ -23,7 +23,6 @@ hubrR = 0.2
 R = 50.
 pitch = 2*np.pi/180
 a = 0.3 #starting value
-aprime = 0.0 #starting value
 rho = 1.225
 a_w = 0.3
 TSR = 6
@@ -219,12 +218,13 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         c = chord(mu[z])
         t = twist(mu[z])
         
-        r1 = np.array([1/elements[z], 0, 0])
+        r1 = np.array([mu[z],0, 0])
         r2 = controlpoints[z]
         n_azim = np.cross(r1, r2)
+
         
-        V_ax = u_inf + ulist[z]
-        V_tan = omega*elements[z] + np.dot(np.array([V_ax, vlist[z], wlist[z]]), n_azim)
+        V_ax = u_inf + wlist[z]
+        V_tan = omega*elements[z] + np.dot(np.array([ulist[z], vlist[z], V_ax]), n_azim)
         V_p = np.sqrt(V_tan**2 +V_ax**2)
         ratio = V_ax / V_tan
         
