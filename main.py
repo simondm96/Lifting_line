@@ -214,6 +214,7 @@ gamma_W = np.zeros(N)
 """
 3D plot test
 """
+"""
 fact = 1.0
 fig = plt.figure(num=None, figsize=(50, 50), dpi=30, facecolor='w', edgecolor='k')
 
@@ -234,3 +235,4 @@ for i in range(int(t_steps*fact)):
  
 
 plt.show()
+"""
