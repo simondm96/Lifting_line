@@ -35,25 +35,6 @@ t=np.linspace(0., 20., t_steps)
 
 single_wake = np.zeros((t_steps, (N+1), 3))
 
-
-"""
-Initialize coordlist matrix of rotor coordinates
-"""
-coordlist = np.zeros((1,3))
-
-
-for tn in range(3):
-    theta = 90+tn*120
-    r=0
-    for N_el in range(N):
-        dr = R/N
-        r = r+dr
-        x = r*np.cos(np.radians(theta))
-        y = r*np.sin(np.radians(theta))
-        z = 0
-        tempmat = [[x,y,z]]
-        coordlist = np.vstack([coordlist, tempmat])
-
 """
 Initialize matrix of ring coordinates
 """
@@ -245,7 +226,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         V_ax = u_inf + ulist[z]
         V_tan = omega*elements[z] + np.dot(np.array([V_ax, vlist[z], wlist[z]]), n_azim)
         V_p = np.sqrt(V_tan**2 +V_ax**2)
-        gammalist.append(circcalc(alpha, V_p, rho, c))
+        gammalist.append(circcalc(alpha*180./np.pi, V_p, rho, c))
     
     
     ulist = np.matmul(MatrixU,  np.array(gammalist)) 
