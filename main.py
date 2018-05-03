@@ -29,8 +29,8 @@ rho = 1.225
 a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
-t_steps = 150
-t=np.linspace(0., 20., t_steps)
+t_steps = 200
+t=np.linspace(0., 30., t_steps)
 
 
 single_wake = np.zeros((t_steps, (N+1), 3))
@@ -162,6 +162,7 @@ om_y = np.sin(omega*t)
 #calculating the blade coordinates
 controlpoints = np.zeros((N, 3))
 controlpoints[:,0] = elements
+controlpoints[:,1] = 0.5*chord(mu)
 
 #Constructing the wake matrix for a single blade
 single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps))) #z
@@ -194,7 +195,7 @@ gamma_W = np.zeros(N)
 
 
 a = 0.3
-ulist = N*[-a*u_inf]
+ulist = N*[0.]
 vlist = N*[0.]
 wlist = N*[0.]
 pitch = np.radians(2)
@@ -215,17 +216,19 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     
     gammalist = []
     for z in range(N):
-        t = twist(mu[z])
-        alpha = t+pitch
         c = chord(mu[z])
-        r1 = np.array([0, -1/elements[z], 0])
+        t = twist(mu[z])
+        
+        r1 = np.array([1/elements[z], 0, 0])
         r2 = controlpoints[z]
         n_azim = np.cross(r1, r2)
-    
-    
+        
         V_ax = u_inf + ulist[z]
         V_tan = omega*elements[z] + np.dot(np.array([V_ax, vlist[z], wlist[z]]), n_azim)
         V_p = np.sqrt(V_tan**2 +V_ax**2)
+        ratio = V_ax / V_tan
+        
+        alpha = np.arctan(ratio)-t+pitch
         gammalist.append(circcalc(alpha*180./np.pi, V_p, rho, c))
     
     
