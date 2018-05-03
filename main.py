@@ -182,7 +182,7 @@ controlpoints[:,0] = elements
 #Constructing the wake matrix for a single blade
 single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps))) #z
 single_wake[:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
-single_wake[:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y
+single_wake[:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y 
      
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
@@ -208,14 +208,60 @@ gamma_U = np.zeros(N)
 gamma_V = np.zeros(N)
 gamma_W = np.zeros(N)
 
-#pitch = np.radians(2)
-#for z in range(N-1):
-#    t = twist(mu[z])
-#    alpha = t+pitch
-#    c = chord(mu[z])
-#    gamma_U[z] = circcalc(alpha, Vp, rho, c)
-#    gamma_V[z] = circcalc(alpha, Vp, rho, c)
-#    gamma_W[z] = circcalc(alpha, Vp, rho, c)
+
+a = 0.3
+ulist = N*[-a*u_inf]
+vlist = N*[0.]
+wlist = N*[0.]
+pitch = np.radians(2)
+
+diff_u = 1
+diff_v = 1
+diff_w = 1
+
+n = 0
+precision = 0.000000001
+nmax = 100
+
+
+while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
+    u_old = ulist
+    v_old = vlist
+    w_old = wlist
+    
+    gammalist = []
+    for z in range(N):
+        t = twist(mu[z])
+        alpha = t+pitch
+        c = chord(mu[z])
+        r1 = np.array([0, -1/elements[z], 0])
+        r2 = controlpoints[z]
+        n_azim = np.cross(r1, r2)
+    
+    
+        V_ax = u_inf + ulist[z]
+        V_tan = omega*elements[z] + np.dot(np.array([V_ax, vlist[z], wlist[z]]), n_azim)
+        V_p = np.sqrt(V_tan**2 +V_ax**2)
+        gammalist.append(circcalc(alpha, V_p, rho, c))
+    
+    
+    ulist = np.matmul(MatrixU,  np.array(gammalist)) 
+    vlist = np.matmul(MatrixV,  np.array(gammalist)) 
+    wlist = np.matmul(MatrixW,  np.array(gammalist))
+    
+    diff_u_list = np.abs(u_old - ulist)
+    diff_v_list = np.abs(v_old - vlist)
+    diff_w_list = np.abs(w_old - wlist)
+    
+    diff_u = np.amax(diff_u_list)
+    diff_v = np.amax(diff_v_list)
+    diff_w = np.amax(diff_w_list)
+    
+    
+    n+=1
+        
+
+        
 
 
 """
