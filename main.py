@@ -28,7 +28,7 @@ rho = 1.225
 a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
-t_steps = 200
+t_steps = 100
 t=np.linspace(0., 30., t_steps)
 
 
@@ -134,7 +134,7 @@ def polarreader(alpha, alphalist, cllist, cdlist):
     return cl, cd
     
 
-def circcalc(alpha, V, rho, c):
+def circcalc(alpha, V, c):
     """
     Very basic circulation calculator with lots of inputs and 1 output
     """
@@ -205,7 +205,7 @@ diff_w = 1
 
 n = 0
 precision = 0.000000001
-nmax = 100
+nmax = 50
 
 
 while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
@@ -214,6 +214,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     w_old = wlist
     
     gammalist = []
+    gammalist_nondim = []
     for z in range(N):
         c = chord(mu[z])
         t = twist(mu[z])
@@ -228,7 +229,9 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         ratio = V_ax / V_tan
         
         alpha = np.arctan(ratio)-t+pitch
-        gammalist.append(circcalc(alpha*180./np.pi, V_p, rho, c))
+        circ = circcalc(alpha*180./np.pi, V_p, c)
+        gammalist.append(circ)
+        gammalist_nondim.append(circ/((u_inf**2)/(1*np.pi*omega)))
     
     
     ulist = np.matmul(MatrixU,  np.array(gammalist)) 
@@ -251,7 +254,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
 
 
 """
-3D plot test
+3D plot testr
 """
 """
 fact = 1.0
