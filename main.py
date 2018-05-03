@@ -9,7 +9,6 @@ Created on Wed Apr 25 14:41:32 2018
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-
 import time
 start_time = time.time()
 
@@ -276,4 +275,4 @@ for i in range(int(t_steps*fact)):
 
 plt.show()
 """
-print("--- %s seconds ---" % (time.time() - start_time))
+print("--- Total runtime is %s seconds ---" % (time.time() - start_time))
