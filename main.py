@@ -218,7 +218,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         c = chord(mu[z])
         t = twist(mu[z])
         
-        r1 = np.array([mu[z],0, 0])
+        r1 = np.array([0,0, -1/elements[z]])
         r2 = controlpoints[z]
         n_azim = np.cross(r1, r2)
 
