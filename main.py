@@ -158,9 +158,8 @@ om_x = np.cos(omega*t)
 om_y = np.sin(omega*t)
 
 #calculating the blade coordinates
-controlpoints = np.zeros((N, 3))
-controlpoints[:,0] = elements
-controlpoints[:,1] = 0.5*chord(mu)
+controlpoints_single = np.zeros((N, 3))
+controlpoints = N_blades*[controlpoints_single]
 
 #making the list in which the wakes are initialised
 Wake = N_blades*[single_wake]
@@ -172,6 +171,8 @@ for i in range(N_blades):
     rot = 2*np.pi/N_blades*i
     om_x = np.cos(omega*t+rot)
     om_y = np.sin(omega*t+rot)
+    controlpoints[i][:,0] = elements*np.cos(rot) - np.sin(rot)*0.5*chord(mu)
+    controlpoints[i][:,1] = elements*np.sin(rot)+np.cos(rot)*0.5*chord(mu)
     Wake[i][:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
     Wake[i][:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y
     
@@ -190,7 +191,7 @@ for icp in range(N_blades*N):
         i = int(jring/N)
         jringn = jring%N
         ring = np.concatenate((Wake[i][:, jringn,:], Wake[i][::-1, jringn+1,:]))
-        ind_vel = unit_induced_velocity_calc(controlpoints[icpn], ring)
+        ind_vel = unit_induced_velocity_calc(controlpoints[i][icpn], ring)
         MatrixU[icp][jring] = ind_vel[0]
         MatrixV[icp][jring] = ind_vel[1]
         MatrixW[icp][jring] = ind_vel[2]
@@ -225,18 +226,19 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     gammalist = []
     gammalist_nondim = []
     for z in range(N_blades*N):
-        z = z%N
+        zn = z%N
+        i = int(z/N)
             
-        c = chord(mu[z])
-        t = twist(mu[z])
+        c = chord(mu[zn])
+        t = twist(mu[zn])
         
-        r1 = np.array([0,0,-1/elements[z]])
-        r2 = controlpoints[z]
+        r1 = np.array([0,0,-1/elements[zn]])
+        r2 = controlpoints[i][zn]
         n_azim = np.cross(r1, r2)
 
         
         V_ax = u_inf + wlist[z]
-        V_tan = omega*elements[z] + np.dot(np.array([ulist[z], vlist[z], V_ax]), n_azim)
+        V_tan = omega*elements[zn] + np.dot(np.array([ulist[z], vlist[z], V_ax]), n_azim)
         V_p = np.sqrt(V_tan**2 +V_ax**2)
         ratio = V_ax / V_tan
         
