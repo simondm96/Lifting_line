@@ -133,7 +133,7 @@ def polarreader(alpha, alphalist, cllist, cdlist):
     return cl, cd
     
 
-def circcalc(alpha, V, rho, c):
+def circcalc(alpha, V, c):
     """
     Very basic circulation calculator with lots of inputs and 1 output
     """
@@ -213,7 +213,7 @@ diff_w = 1
 
 n = 0
 precision = 0.000000001
-nmax = 100
+nmax = 50
 
 print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
@@ -223,6 +223,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     w_old = wlist
     
     gammalist = []
+    gammalist_nondim = []
     for z in range(N_blades*N):
         z = z%N
             
@@ -240,7 +241,9 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         ratio = V_ax / V_tan
         
         alpha = np.arctan(ratio)-t+pitch
-        gammalist.append(circcalc(alpha*180./np.pi, V_p, rho, c))
+        circ = circcalc(alpha*180./np.pi, V_p, c)
+        gammalist.append(circ)
+        gammalist_nondim.append(circ/((u_inf**2)/(1*np.pi*omega)))
     
     
     ulist = np.matmul(MatrixU,  np.array(gammalist)) 
@@ -259,7 +262,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     n+=1
 
 """
-3D plot test
+3D plot testr
 """
 """
 fact = 1.0
