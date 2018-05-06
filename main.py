@@ -27,7 +27,7 @@ rho = 1.225
 a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
-t_steps = 200
+t_steps = 100
 t=np.linspace(0., 30., t_steps)
 
 
@@ -162,23 +162,35 @@ controlpoints = np.zeros((N, 3))
 controlpoints[:,0] = elements
 controlpoints[:,1] = 0.5*chord(mu)
 
+#making the list in which the wakes are initialised
+Wake = N_blades*[single_wake]
+
 #Constructing the wake matrix for a single blade
 single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps))) #z
-single_wake[:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
-single_wake[:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y 
+
+for i in range(N_blades):
+    rot = 2*np.pi/N_blades*i
+    om_x = np.cos(omega*t+rot)
+    om_y = np.sin(omega*t+rot)
+    Wake[i][:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
+    Wake[i][:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y
+    
      
 """
 Initialize u, v, w matrices with circulation/ring strength set to unity
 """
 
 
-MatrixU = np.zeros((N, N))
-MatrixV = np.zeros((N, N))
-MatrixW = np.zeros((N, N))
-for icp in range(N):
-    for jring in range(N):
-        ring = np.concatenate((single_wake[:, jring,:], single_wake[::-1, jring+1,:]))
-        ind_vel = unit_induced_velocity_calc(controlpoints[icp], ring)
+MatrixU = np.zeros((N_blades*N, N_blades*N))
+MatrixV = np.zeros((N_blades*N, N_blades*N))
+MatrixW = np.zeros((N_blades*N, N_blades*N))
+for icp in range(N_blades*N):
+    icpn = icp%N
+    for jring in range(N_blades*N):
+        i = int(jring/N)
+        jringn = jring%N
+        ring = np.concatenate((Wake[i][:, jringn,:], Wake[i][::-1, jringn+1,:]))
+        ind_vel = unit_induced_velocity_calc(controlpoints[icpn], ring)
         MatrixU[icp][jring] = ind_vel[0]
         MatrixV[icp][jring] = ind_vel[1]
         MatrixW[icp][jring] = ind_vel[2]
@@ -187,15 +199,12 @@ for icp in range(N):
 """
 Calculate circulations for U, V, W unit circulation matrices
 """
-gamma_U = np.zeros(N)
-gamma_V = np.zeros(N)
-gamma_W = np.zeros(N)
 
 
 a = 0.3
-ulist = N*[0.]
-vlist = N*[0.]
-wlist = N*[0.]
+ulist = N_blades*N*[0.]
+vlist = N_blades*N*[0.]
+wlist = N_blades*N*[0.]
 pitch = np.radians(2)
 
 diff_u = 1
@@ -206,6 +215,7 @@ n = 0
 precision = 0.000000001
 nmax = 100
 
+print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
 while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     u_old = ulist
@@ -213,11 +223,13 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     w_old = wlist
     
     gammalist = []
-    for z in range(N):
+    for z in range(N_blades*N):
+        z = z%N
+            
         c = chord(mu[z])
         t = twist(mu[z])
         
-        r1 = np.array([mu[z],0, 0])
+        r1 = np.array([0,0,-1/elements[z]])
         r2 = controlpoints[z]
         n_azim = np.cross(r1, r2)
 
@@ -245,10 +257,6 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     
     
     n+=1
-        
-
-        
-
 
 """
 3D plot test
