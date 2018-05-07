@@ -28,11 +28,11 @@ a_w = 0.2
 TSR = 6
 omega = TSR * u_inf /R
 
-t_steps = 50
+t_steps = 100
 t=np.linspace(0., 30., t_steps)
 single_wake = np.zeros((t_steps, (N+1), 3))
 
-def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
+def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-5):
     """
     Calculates the induced velocity of a straight vortex element between point_1 and point_2 on point
     """
@@ -146,7 +146,7 @@ mu = map_values(elements, 0.2*R, R, 0.2, 1)
 
 #calculating the blade coordinates
 controlpoints_single = np.zeros((N, 3))
-controlpoints = N_blades*[controlpoints_single]
+controlpoints = [np.copy(controlpoints_single) for x in range(N_blades)]
 
 """
 Initialize matrix of ring coordinates
@@ -203,12 +203,12 @@ diff_v = 1
 diff_w = 1
 
 n = 0
-precision = 0.000000001
+precision = 1e-18
 nmax = 50
 
 print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
-while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
+while (diff_u>precision and diff_v>precision and diff_w>precision and n<nmax):
     u_old = ulist
     v_old = vlist
     w_old = wlist
