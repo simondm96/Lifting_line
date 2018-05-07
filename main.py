@@ -24,21 +24,13 @@ R = 50.
 pitch = 2*np.pi/180
 a = 0.3 #starting value
 rho = 1.225
-a_w = 0.3
+a_w = 0.2
 TSR = 6
 omega = TSR * u_inf /R
-t_steps = 100
+
+t_steps = 50
 t=np.linspace(0., 30., t_steps)
-
-
 single_wake = np.zeros((t_steps, (N+1), 3))
-
-"""
-Initialize matrix of ring coordinates
-"""
-
-
-
 
 def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
@@ -144,7 +136,6 @@ def circcalc(alpha, V, c):
 """
 Initialising the blade
 """
-
 #Cosine mapping
 mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N+1)))
 
@@ -153,19 +144,20 @@ ends = map_values(mapping, 0,1, 0.2*R, R)
 elements = middle_vals(ends)
 mu = map_values(elements, 0.2*R, R, 0.2, 1)
 
-
-om_x = np.cos(omega*t)
-om_y = np.sin(omega*t)
-
 #calculating the blade coordinates
 controlpoints_single = np.zeros((N, 3))
 controlpoints = N_blades*[controlpoints_single]
 
+"""
+Initialize matrix of ring coordinates
+"""
+#Initilise the z component
+single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps)))
 #making the list in which the wakes are initialised
-Wake = N_blades*[single_wake]
+Wake = [np.copy(single_wake) for x in range(N_blades)]
+
 
 #Constructing the wake matrix for a single blade
-single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps))) #z
 
 for i in range(N_blades):
     rot = 2*np.pi/N_blades*i
@@ -185,6 +177,7 @@ Initialize u, v, w matrices with circulation/ring strength set to unity
 MatrixU = np.zeros((N_blades*N, N_blades*N))
 MatrixV = np.zeros((N_blades*N, N_blades*N))
 MatrixW = np.zeros((N_blades*N, N_blades*N))
+
 for icp in range(N_blades*N):
     icpn = icp%N
     for jring in range(N_blades*N):
@@ -200,9 +193,6 @@ for icp in range(N_blades*N):
 """
 Calculate circulations for U, V, W unit circulation matrices
 """
-
-
-a = 0.3
 ulist = N_blades*N*[0.]
 vlist = N_blades*N*[0.]
 wlist = N_blades*N*[0.]
@@ -230,7 +220,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         i = int(z/N)
             
         c = chord(mu[zn])
-        t = twist(mu[zn])
+        tw = twist(mu[zn])
         
         r1 = np.array([0,0,-1/elements[zn]])
         r2 = controlpoints[i][zn]
@@ -242,7 +232,7 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
         V_p = np.sqrt(V_tan**2 +V_ax**2)
         ratio = V_ax / V_tan
         
-        alpha = np.arctan(ratio)-t+pitch
+        alpha = np.arctan(ratio)-tw+pitch
         circ = circcalc(alpha*180./np.pi, V_p, c)
         gammalist.append(circ)
         gammalist_nondim.append(circ/((u_inf**2)/(1*np.pi*omega)))
@@ -259,7 +249,6 @@ while diff_u>precision and diff_v>precision and diff_w>precision and n<nmax:
     diff_u = np.amax(diff_u_list)
     diff_v = np.amax(diff_v_list)
     diff_w = np.amax(diff_w_list)
-    
     
     n+=1
 
