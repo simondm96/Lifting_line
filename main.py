@@ -24,7 +24,7 @@ R = 50.
 pitch = 2*np.pi/180
 rho = 1.225
 a_w = 0.3
-TSR = 8
+TSR = 6
 omega = TSR * u_inf /R
 
 t_steps = 150
@@ -158,7 +158,8 @@ vortex_start_z = chord(mu_ends)*np.sin(twist(mu_ends)+pitch)
 Initialize matrix of ring coordinates
 """
 #Initilise the z component
-single_wake[:,:,2] = vortex_start_z+np.transpose(np.broadcast_to(t*u_inf*(1 - a_w), (N + 1, t_steps)))
+single_wake[1:,:,2] = vortex_start_z+np.transpose(np.broadcast_to(t[:-1]*u_inf*(1 - a_w), (N + 1, t_steps-1)))
+single_wake[0,:,2] = 0
 #making the list in which the wakes are initialised
 Wake = [np.copy(single_wake) for x in range(N_blades)]
 
@@ -167,10 +168,12 @@ Wake = [np.copy(single_wake) for x in range(N_blades)]
 
 for i in range(N_blades):
     rot = 2*np.pi/N_blades*i
-    om_x = np.cos(omega*t + rot)
-    om_y = np.sin(omega*t + rot)
-    Wake[i][:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) - np.matmul(om_y.reshape((-1,1)),chord(mu_ends).reshape((1,-1)))#x
-    Wake[i][:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) + np.matmul(om_x.reshape((-1,1)),vortex_start_y.reshape((1,-1)))#y
+    om_x = np.cos(omega*t[:-1] + rot)
+    om_y = np.sin(omega*t[:-1] + rot)
+    Wake[i][1:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) - np.matmul(om_y.reshape((-1,1)),chord(mu_ends).reshape((1,-1)))#x
+    Wake[i][1:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) + np.matmul(om_x.reshape((-1,1)),vortex_start_y.reshape((1,-1)))#y
+    Wake[i][0,:,0] = ends*np.cos(rot)
+    Wake[i][0,:,1] = ends*np.sin(rot)
     
      
 """
@@ -223,7 +226,7 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
         
         r1 = np.array([0,0,-1/elements[z]])
         r2 = controlpoints[z]
-        n_azim = np.cross(r1, r2)
+        n_azim = np.cross(r1, r2)/np.linalg.norm(np.cross(r1, r2))
 
         
         V_ax = u_inf + wlist[z]
@@ -267,13 +270,12 @@ def circplot(nondim):
         for i in range(len(gammalist)):
             gammalist[i] = gammalist[i]/dimfactor
         plt.plot(mu, gammalist[:20])
-        plt.ylim(0, 1.1)
     else:
         plt.plot(mu, gammalist[:20])
-        plt.ylim((0, 1.9))
-    
+        
+    plt.ylim((0, max(gammalist)*1.1))
     plt.xlabel("r/R")
-    plt.ylabel("Circulation \gamma")
+    plt.ylabel(r"Circulation $\Gamma$")
     plt.show()
 
 """
