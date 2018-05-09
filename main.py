@@ -16,7 +16,7 @@ start_time = time.time()
 """
 Parameters from BEM assignment
 """
-N = 60
+N = 20
 u_inf = 10.
 N_blades = 3
 hubrR = 0.2
@@ -27,7 +27,7 @@ a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
 
-t_steps = 300
+t_steps = 150
 t=np.linspace(0., 30, t_steps)
 single_wake = np.zeros((t_steps, (N+1), 3))
 
@@ -213,11 +213,15 @@ nmax = 100
 
 print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
+
+
 while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
     u_old = ulist
     v_old = vlist
     w_old = wlist
     
+    fazlist = []
+    faxlist = []
     gammalist = []
     alphalist = []
     for z in range(N):            
@@ -237,8 +241,16 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
         alpha = np.arctan(ratio)- tw + pitch
         circ = circcalc(alpha*180./np.pi, V_p, c)
         alphalist.append(alpha)
-        gammalist.append(circ)        
-    
+        gammalist.append(circ)      
+          
+        polar = polarreader(alpha, alist, cllist, cdlist)
+        L = 0.5*c*rho*(V_p**2)*polar[0]
+        D = 0.5*c*rho*(V_p**2)*polar[1]
+        f_azim = L*(V_ax/V_p) - D*(V_tan/V_p)
+        f_axial = L*(V_tan/V_p) + D*(V_ax/V_p)
+        fazlist.append(f_azim)
+        faxlist.append(f_axial)
+        
     
     gammalist_mat = np.tile(np.array(gammalist), N_blades)
     
@@ -277,6 +289,9 @@ def circplot(nondim):
     plt.xlabel("r/R")
     plt.ylabel(r"Circulation $\Gamma$")
     plt.show()
+    
+    
+
 
 """
 3D plot testr
