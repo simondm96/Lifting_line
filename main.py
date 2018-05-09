@@ -258,7 +258,7 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
 
     
 #calculate induction factors
-a = wlist/u_inf
+a = -wlist/u_inf
 aprime = np.sqrt(ulist**2+vlist**2)/omega/elements
 
 """  
