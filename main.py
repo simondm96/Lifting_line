@@ -22,17 +22,16 @@ N_blades = 3
 hubrR = 0.2
 R = 50.
 pitch = 2*np.pi/180
-a = 0.3 #starting value
 rho = 1.225
-a_w = 0.2
-TSR = 6
+a_w = 0.3
+TSR = 8
 omega = TSR * u_inf /R
 
-t_steps = 100
-t=np.linspace(0., 30., t_steps)
+t_steps = 150
+t=np.linspace(0., 30, t_steps)
 single_wake = np.zeros((t_steps, (N+1), 3))
 
-def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-5):
+def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     """
     Calculates the induced velocity of a straight vortex element between point_1 and point_2 on point
     """
@@ -109,7 +108,7 @@ def unit_induced_velocity_calc(point, ring):
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
 preader = np.genfromtxt(polar, delimiter = ',', skip_header = 2)
-alphalist = preader[0,:]
+alist = preader[0,:]
 cllist = preader[1,:]
 cdlist = preader[2,:]
        
@@ -129,7 +128,7 @@ def circcalc(alpha, V, c):
     """
     Very basic circulation calculator with lots of inputs and 1 output
     """
-    circ = 0.5*c*V*polarreader(alpha, alphalist, cllist, cdlist)[0]
+    circ = 0.5*c*V*polarreader(alpha, alist, cllist, cdlist)[0]
     return circ
 
    
@@ -143,16 +142,23 @@ mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N+1)))
 ends = map_values(mapping, 0,1, 0.2*R, R)
 elements = middle_vals(ends)
 mu = map_values(elements, 0.2*R, R, 0.2, 1)
+mu_ends = map_values(ends, 0.2*R, R, 0.2, 1)
 
 #calculating the blade coordinates
-controlpoints_single = np.zeros((N, 3))
-controlpoints = [np.copy(controlpoints_single) for x in range(N_blades)]
+controlpoints = np.zeros((N, 3))
+controlpoints[:,0] = elements
+controlpoints[:,1] = 0.5*chord(mu)*np.cos(twist(mu)+pitch)
+controlpoints[:,2] = 0.5*chord(mu)*np.sin(twist(mu)+pitch)
+
+#calculate the starting locations of the vortex filaments
+vortex_start_y = chord(mu_ends)*np.cos(twist(mu_ends)+pitch)
+vortex_start_z = chord(mu_ends)*np.sin(twist(mu_ends)+pitch)
 
 """
 Initialize matrix of ring coordinates
 """
 #Initilise the z component
-single_wake[:,:,2] = np.transpose(np.broadcast_to(t*u_inf*(1-a_w), (N+1, t_steps)))
+single_wake[:,:,2] = vortex_start_z+np.transpose(np.broadcast_to(t*u_inf*(1 - a_w), (N + 1, t_steps)))
 #making the list in which the wakes are initialised
 Wake = [np.copy(single_wake) for x in range(N_blades)]
 
@@ -161,12 +167,10 @@ Wake = [np.copy(single_wake) for x in range(N_blades)]
 
 for i in range(N_blades):
     rot = 2*np.pi/N_blades*i
-    om_x = np.cos(omega*t+rot)
-    om_y = np.sin(omega*t+rot)
-    controlpoints[i][:,0] = elements*np.cos(rot) - np.sin(rot)*0.5*chord(mu)
-    controlpoints[i][:,1] = elements*np.sin(rot)+np.cos(rot)*0.5*chord(mu)
-    Wake[i][:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) #x
-    Wake[i][:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) #y
+    om_x = np.cos(omega*t + rot)
+    om_y = np.sin(omega*t + rot)
+    Wake[i][:,:,0] = np.matmul(om_x.reshape((-1,1)),ends.reshape((1,-1))) - np.matmul(om_y.reshape((-1,1)),chord(mu_ends).reshape((1,-1)))#x
+    Wake[i][:,:,1] = np.matmul(om_y.reshape((-1,1)),ends.reshape((1,-1))) + np.matmul(om_x.reshape((-1,1)),vortex_start_y.reshape((1,-1)))#y
     
      
 """
@@ -174,29 +178,27 @@ Initialize u, v, w matrices with circulation/ring strength set to unity
 """
 
 
-MatrixU = np.zeros((N_blades*N, N_blades*N))
-MatrixV = np.zeros((N_blades*N, N_blades*N))
-MatrixW = np.zeros((N_blades*N, N_blades*N))
-
-for icp in range(N_blades*N):
-    icpn = icp%N
+MatrixU = np.zeros((N, N_blades*N))
+MatrixV = np.zeros((N, N_blades*N))
+MatrixW = np.zeros((N, N_blades*N))
+for icp in range(N):
     for jring in range(N_blades*N):
         i = int(jring/N)
         jringn = jring%N
         ring = np.concatenate((Wake[i][:, jringn,:], Wake[i][::-1, jringn+1,:]))
-        ind_vel = unit_induced_velocity_calc(controlpoints[i][icpn], ring)
-        MatrixU[icp][jring] = ind_vel[0]
-        MatrixV[icp][jring] = ind_vel[1]
-        MatrixW[icp][jring] = ind_vel[2]
+        ind_vel = unit_induced_velocity_calc(controlpoints[icp], ring)
+        MatrixU[icp,jring] = ind_vel[0]
+        MatrixV[icp,jring] = ind_vel[1]
+        MatrixW[icp,jring] = ind_vel[2]
         
         
 """
 Calculate circulations for U, V, W unit circulation matrices
 """
-ulist = N_blades*N*[0.]
-vlist = N_blades*N*[0.]
-wlist = N_blades*N*[0.]
-pitch = np.radians(2)
+ulist = N*[0.]
+vlist = N*[0.]
+wlist = N*[0.]
+
 
 diff_u = 1
 diff_v = 1
@@ -204,43 +206,42 @@ diff_w = 1
 
 n = 0
 precision = 1e-18
-nmax = 50
+nmax = 100
 
 print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
-while (diff_u>precision and diff_v>precision and diff_w>precision and n<nmax):
+while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
     u_old = ulist
     v_old = vlist
     w_old = wlist
     
     gammalist = []
-    gammalist_nondim = []
-    for z in range(N_blades*N):
-        zn = z%N
-        i = int(z/N)
-            
-        c = chord(mu[zn])
-        tw = twist(mu[zn])
+    alphalist = []
+    for z in range(N):            
+        c = chord(mu[z])
+        tw = twist(mu[z])
         
-        r1 = np.array([0,0,-1/elements[zn]])
-        r2 = controlpoints[i][zn]
+        r1 = np.array([0,0,-1/elements[z]])
+        r2 = controlpoints[z]
         n_azim = np.cross(r1, r2)
 
         
         V_ax = u_inf + wlist[z]
-        V_tan = omega*elements[zn] + np.dot(np.array([ulist[z], vlist[z], V_ax]), n_azim)
-        V_p = np.sqrt(V_tan**2 +V_ax**2)
+        V_tan = omega*elements[z] + np.dot(np.array([ulist[z], vlist[z], V_ax]), n_azim)
+        V_p = np.sqrt(V_tan**2 + V_ax**2)
         ratio = V_ax / V_tan
         
-        alpha = np.arctan(ratio)-tw+pitch
+        alpha = np.arctan(ratio)- tw + pitch
         circ = circcalc(alpha*180./np.pi, V_p, c)
-        gammalist.append(circ)
-        gammalist_nondim.append(circ/((u_inf**2)/(1*np.pi*omega)))
+        alphalist.append(alpha)
+        gammalist.append(circ)        
     
     
-    ulist = np.matmul(MatrixU,  np.array(gammalist)) 
-    vlist = np.matmul(MatrixV,  np.array(gammalist)) 
-    wlist = np.matmul(MatrixW,  np.array(gammalist))
+    gammalist_mat = np.tile(np.array(gammalist), N_blades)
+    
+    ulist = np.matmul(MatrixU,  np.array(gammalist_mat)) 
+    vlist = np.matmul(MatrixV,  np.array(gammalist_mat)) 
+    wlist = np.matmul(MatrixW,  np.array(gammalist_mat))
     
     diff_u_list = np.abs(u_old - ulist)
     diff_v_list = np.abs(v_old - vlist)
@@ -251,6 +252,10 @@ while (diff_u>precision and diff_v>precision and diff_w>precision and n<nmax):
     diff_w = np.amax(diff_w_list)
     
     n+=1
+    
+#calculate induction factors
+a = wlist/u_inf
+aprime = np.sqrt(ulist**2+vlist**2)/omega/elements
 
 """
 3D plot testr
