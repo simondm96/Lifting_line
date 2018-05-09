@@ -31,7 +31,7 @@ t_steps = 150
 t=np.linspace(0., 30, t_steps)
 single_wake = np.zeros((t_steps, (N+1), 3))
 
-def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
+def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-5):
     """
     Calculates the induced velocity of a straight vortex element between point_1 and point_2 on point
     """
@@ -47,7 +47,7 @@ def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
     cross_squared = np.linalg.norm(cross_r)**2
     r1_norm = np.linalg.norm(r1)
     r2_norm = np.linalg.norm(r2)
-    if r1_norm<r_vortex or r2_norm<r_vortex or cross_squared<r_vortex:
+    if r1_norm<r_vortex or r2_norm<r_vortex or cross_squared<r_vortex**2:
         v_ind = np.array([0,0,0])
     else:
         vector_1 = circulation/(4*np.pi)*cross_r/cross_squared
@@ -108,9 +108,9 @@ def unit_induced_velocity_calc(point, ring):
 #reads airfoil polar data
 polar = open('polar_DU95W180.csv', 'rb')
 preader = np.genfromtxt(polar, delimiter = ',', skip_header = 2)
-alist = preader[0,:]
-cllist = preader[1,:]
-cdlist = preader[2,:]
+alist = preader[:,0]
+cllist = preader[:,1]
+cdlist = preader[:,2]
        
 
 
@@ -208,8 +208,8 @@ diff_v = 1
 diff_w = 1
 
 n = 0
-precision = 1e-18
-nmax = 100
+precision = 1e-6
+nmax = 5
 
 print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
@@ -243,7 +243,7 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
         alphalist.append(alpha)
         gammalist.append(circ)      
           
-        polar = polarreader(alpha, alist, cllist, cdlist)
+        polar = polarreader(alpha*180./np.pi, alist, cllist, cdlist)
         L = 0.5*c*rho*(V_p**2)*polar[0]
         D = 0.5*c*rho*(V_p**2)*polar[1]
         f_azim = L*(V_ax/V_p) - D*(V_tan/V_p)
