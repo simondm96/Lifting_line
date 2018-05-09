@@ -23,7 +23,7 @@ hubrR = 0.2
 R = 50.
 pitch = 2*np.pi/180
 rho = 1.225
-a_w = 0.3
+a_w = 0.1
 TSR = 6
 omega = TSR * u_inf /R
 
@@ -31,7 +31,9 @@ t_steps = 150
 t=np.linspace(0., 30, t_steps)
 single_wake = np.zeros((t_steps, (N+1), 3))
 
-def induced_velocity(point, point_1, point_2, circulation, r_vortex = 1e-10):
+polar = np.genfromtxt('polar_DU95W180.csv', delimiter = ',', skip_header = 2)
+
+def induced_velocity(point, point_1, point_2, circulation, r_vortex = 0.5):
     """
     Calculates the induced velocity of a straight vortex element between point_1 and point_2 on point
     """
@@ -68,7 +70,7 @@ def twist(section):
                       calculated, normalised to the radius of the rotor
                       
     Output:
-        twist       = ndarray, the twist for the section(s). If sections is a
+        twist       = ndarray, the twist for the section(s). If section is a
                       float, returns a float
     """
     return 14*(1-section)*np.pi/180.
@@ -105,30 +107,23 @@ def unit_induced_velocity_calc(point, ring):
         ind_vel += vel
     return ind_vel
 
-#reads airfoil polar data
-polar = open('polar_DU95W180.csv', 'rb')
-preader = np.genfromtxt(polar, delimiter = ',', skip_header = 2)
-alist = preader[0,:]
-cllist = preader[1,:]
-cdlist = preader[2,:]
-       
 
 
-def polarreader(alpha, alphalist, cllist, cdlist):
+def polarreader(alpha, polar):
     """
     instructions: call polarreader with the required alpha and the alphalist & cllist
     will return interpolated cl value
     """
-    cl = np.interp(alpha, alphalist, cllist)
-    cd = np.interp(alpha, alphalist, cdlist)
+    cl = np.interp(alpha, polar[:,0], polar[:,1])
+    cd = np.interp(alpha, polar[:,0], polar[:,2])
     return cl, cd
     
 
-def circcalc(alpha, V, c):
+def circcalc(cl, V, c):
     """
     Very basic circulation calculator with lots of inputs and 1 output
     """
-    circ = 0.5*c*V*polarreader(alpha, alist, cllist, cdlist)[0]
+    circ = 0.5*c*V*cl
     return circ
 
    
@@ -136,7 +131,9 @@ def circcalc(alpha, V, c):
 Initialising the blade
 """
 #Cosine mapping
-mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N+1)))
+#mapping = 0.5*(1-np.cos(np.linspace(0, np.pi, num=N+1)))
+#Normal mapping
+mapping = np.linspace(0,1,num=N+1)
 
 
 ends = map_values(mapping, 0,1, 0.2*R, R)
@@ -147,10 +144,10 @@ mu_ends = map_values(ends, 0.2*R, R, 0.2, 1)
 #calculating the blade coordinates
 controlpoints = np.zeros((N, 3))
 controlpoints[:,0] = elements
-controlpoints[:,1] = 0.5*chord(mu)*np.cos(twist(mu)+pitch)
-controlpoints[:,2] = 0.5*chord(mu)*np.sin(twist(mu)+pitch)
+#controlpoints[:,1] = 0.5*chord(mu)*np.cos(twist(mu)+pitch)
+#controlpoints[:,2] = 0.5*chord(mu)*np.sin(twist(mu)+pitch)
 
-#calculate the starting locations of the vortex filaments
+#calculate the starting locations of the vortex filaments in the flow
 vortex_start_y = chord(mu_ends)*np.cos(twist(mu_ends)+pitch)
 vortex_start_z = chord(mu_ends)*np.sin(twist(mu_ends)+pitch)
 
@@ -184,11 +181,14 @@ Initialize u, v, w matrices with circulation/ring strength set to unity
 MatrixU = np.zeros((N, N_blades*N))
 MatrixV = np.zeros((N, N_blades*N))
 MatrixW = np.zeros((N, N_blades*N))
+
+ringlist = []
 for icp in range(N):
     for jring in range(N_blades*N):
         i = int(jring/N)
         jringn = jring%N
         ring = np.concatenate((Wake[i][:, jringn,:], Wake[i][::-1, jringn+1,:]))
+        ringlist.append(ring)
         ind_vel = unit_induced_velocity_calc(controlpoints[icp], ring)
         MatrixU[icp,jring] = ind_vel[0]
         MatrixV[icp,jring] = ind_vel[1]
@@ -208,8 +208,8 @@ diff_v = 1
 diff_w = 1
 
 n = 0
-precision = 1e-18
-nmax = 100
+precision = 1e-5
+nmax = 1000
 
 print("--- Time to init is %s seconds ---" % (time.time() - start_time))
 
@@ -224,6 +224,7 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
     faxlist = []
     gammalist = []
     alphalist = []
+    vellist = []
     for z in range(N):            
         c = chord(mu[z])
         tw = twist(mu[z])
@@ -239,17 +240,20 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
         ratio = V_ax / V_tan
         
         alpha = np.arctan(ratio)- tw + pitch
-        circ = circcalc(alpha*180./np.pi, V_p, c)
+        
+          
+        polar_val = polarreader(alpha*180./np.pi, polar)
+#        print(polar_val)
+        circ = circcalc(polar_val[0], V_p, c)
         alphalist.append(alpha)
         gammalist.append(circ)      
-          
-        polar = polarreader(alpha, alist, cllist, cdlist)
-        L = 0.5*c*rho*(V_p**2)*polar[0]
-        D = 0.5*c*rho*(V_p**2)*polar[1]
+        L = 0.5*c*rho*(V_p**2)*polar_val[0]
+        D = 0.5*c*rho*(V_p**2)*polar_val[1]
         f_azim = L*(V_ax/V_p) - D*(V_tan/V_p)
         f_axial = L*(V_tan/V_p) + D*(V_ax/V_p)
         fazlist.append(f_azim)
         faxlist.append(f_axial)
+        vellist.append(V_p)
         
     
     gammalist_mat = np.tile(np.array(gammalist), N_blades)
