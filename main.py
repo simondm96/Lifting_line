@@ -16,7 +16,7 @@ start_time = time.time()
 """
 Parameters from BEM assignment
 """
-N = 20
+N = 60
 u_inf = 10.
 N_blades = 3
 hubrR = 0.2
@@ -27,7 +27,7 @@ a_w = 0.3
 TSR = 6
 omega = TSR * u_inf /R
 
-t_steps = 150
+t_steps = 300
 t=np.linspace(0., 30, t_steps)
 single_wake = np.zeros((t_steps, (N+1), 3))
 
