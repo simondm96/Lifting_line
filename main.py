@@ -252,10 +252,29 @@ while (diff_u>precision and diff_v>precision and diff_w>precision) and n<nmax:
     diff_w = np.amax(diff_w_list)
     
     n+=1
+
     
 #calculate induction factors
 a = wlist/u_inf
 aprime = np.sqrt(ulist**2+vlist**2)/omega/elements
+
+"""  
+plot circulations, set nondim=True for a nondimensionalized version of the plot
+"""
+def circplot(nondim):
+    if nondim == True:
+        dimfactor = np.pi*u_inf**2 / (N_blades*omega)
+        for i in range(len(gammalist)):
+            gammalist[i] = gammalist[i]/dimfactor
+        plt.plot(mu, gammalist[:20])
+        plt.ylim(0, 1.1)
+    else:
+        plt.plot(mu, gammalist[:20])
+        plt.ylim((0, 1.9))
+    
+    plt.xlabel("r/R")
+    plt.ylabel("Circulation \gamma")
+    plt.show()
 
 """
 3D plot testr
